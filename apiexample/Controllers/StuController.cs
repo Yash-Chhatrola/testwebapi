@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using apiexample.Data;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Numerics;
 
 namespace apiexample.Controllers
@@ -8,20 +10,27 @@ namespace apiexample.Controllers
     [Route("api/[controller]")]
     public class StuController : ControllerBase
     {
-        private static List<Student> Students = new List<Student>
+        //private static List<Student> Students = new List<Student>
+        //{
+        //    new Student{Rno=1,Name="Yash Patel",Branch="Computer",Fees=10000 },
+        //    new Student{Rno=2,Name="Jay Kumar",Branch="Mechanical",Fees=15000 }
+        //};
+        private readonly ApplicationDbContext dbContext;
+        public StuController(ApplicationDbContext dbContext)
         {
-            new Student{Rno=1,Name="Yash Patel",Branch="Computer",Fees=10000 },
-            new Student{Rno=2,Name="Jay Kumar",Branch="Mechanical",Fees=15000 }
-        };
+            this.dbContext = dbContext;
+        }
         [HttpGet]
         public ActionResult<List<Student>> GetStudents()
         {
-            return Students;
+           var stud = dbContext.students.ToList();
+
+            return Ok(stud);
         }
         [HttpGet("{id}")]
         public ActionResult<Student> GetStudent(int id)
         {
-            var student = Students.FirstOrDefault(s => s.Rno == id);
+            var student = dbContext.students.FirstOrDefault(s => s.Rno == id);
             if (student == null)
             {
                 return NotFound();
@@ -31,36 +40,40 @@ namespace apiexample.Controllers
         [HttpPost]
         public ActionResult<Student> PostStudent(Student student)
         {
-            if(Students.Any(s => s.Rno == student.Rno))
+            if(dbContext.students.Any(s => s.Rno == student.Rno))
             {
                 return BadRequest("Student with the same Rno already exists.");
             }
-            Students.Add(student);
-            return CreatedAtAction("Getstudent", new { id = student.Rno }, student);
+            dbContext.students.Add(student);
+            dbContext.SaveChanges();
+            return CreatedAtAction("GetStudent", new { id = student.Rno }, student);
         }
         [HttpPut("{id}")]
         public ActionResult<Student>PutStudent(int id,Student student)
         {
-            var existingStudent = Students.FirstOrDefault(s => s.Rno == id);
+            var existingStudent = dbContext.students.FirstOrDefault(s => s.Rno == id);
             if (existingStudent == null)
             {
                 return NotFound();
             }
-
             existingStudent.Name = student.Name;
             existingStudent.Branch = student.Branch;
             existingStudent.Fees = student.Fees;
+
+            dbContext.SaveChanges();
             return NoContent();
+
         }
         [HttpDelete("{id}")]
         public ActionResult<Student>DeleteStudent(int id)
         {
-            var student = Students.FirstOrDefault(s => s.Rno == id);
-            if(Students == null)
+            var student = dbContext.students.FirstOrDefault(s => s.Rno == id);
+            if(student == null)
             {
                 return NotFound();
             }
-            Students.Remove(student);
+            dbContext.students.Remove(student);
+            dbContext.SaveChanges();
             return NoContent();
         }
     }
