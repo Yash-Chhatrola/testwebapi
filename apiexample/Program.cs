@@ -7,7 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Services
 builder.Services.AddControllers();
 builder.Services.AddDbContext<ApplicationDbContext>(Options =>
-Options.UseSqlServer(builder.Configuration.GetConnectionString("StudentPortal")));
+Options.UseSqlServer(builder.Configuration.GetConnectionString("StudentPortalForLeptop")));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
